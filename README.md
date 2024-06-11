@@ -29,3 +29,5 @@ I can try the "bare minimum" of the simulation system. The second architecture d
 demanding of them all :)
 
 Hopefully, this project can be finished by the end of summer 2024.
+
+This repository will be updated with codes when the minimum viable product is ready.
