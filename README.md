@@ -30,11 +30,11 @@ demanding of them all :)
 
 Hopefully, this project can be finished by the end of summer 2024.
 
-
-This repository will be updated with codes when the minimum viable product is ready.
-
 ### Architecture #1
 The initial plan of the architecture is as follow:
 ![architecture_1](https://github.com/saachdm/cpsil/assets/20472912/8bbfb99a-9004-4646-ac2d-73cc85113730)
 
 On the C-side, sensor readings and input to the dynamic system will use a "publisher-subscriber" method towards the C server. The user in the C-side then can focus on processing the "subscribed" values and "publishing" the processed values without worrying about the "backend" side of the C. The entire C loop will run everytime the C server receives a message from the Python server.
+
+### Current update 25-06-2024
+The minimum viable product is ready and it should be able to "capture" the important features. The plotter is still a simple matplotlib update mechanism, models are still limited to longitudinal, and lots of things to explore on the C side. Next development will focus on a more robust and modular model, adding driveline model, as well as implementing a rudimentary "bicycle" model for lateral motion.
