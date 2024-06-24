@@ -1,7 +1,7 @@
 #include "header.h"
 //Definition of control modules
 float speed_control(float speed, float ref){
-    return (ref-speed)*5;
+    return (ref-speed)*10;
 }
 
 //Main control input "packer"
