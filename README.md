@@ -17,7 +17,7 @@ General plan:
 |----------|----------|----------|
 | 1 | Basics of C   | Learn the basics of C |
 | 2 | Environment Setup and testing #1 | Developing the architecture of the entire simulation process for 1-DOF simulation|
-| 3 | Longitudinal dynamics (Adaptive Cruise Control (ACC)) | 1-DOF simulation with a simple point-mass dynamics. The vehicle is commanded to follow an agent in front. The input to the simulation is the speed of the agent  |
+| 3 | Longitudinal dynamics (Adaptive Cruise Control and ABS) | 1-DOF simulation with simple point-mass dynamics. The vehicle is commanded to follow an agent in front. The input to the simulation is the speed of the agent. ABS is included |
 | 4 | Environment setup and testing #2 | Extending the architecture to accommodate 3-DOF simulation (longitudinal, lateral, and pitching motion) |
 | 5 | Lateral dynamics (Lane-keeping assist) | 2-DOF simulation with a simple bicycle model. The vehicle is commanded to change lanes |
 | 6 | Powertrain dynamics and Pitching dynamics | Extending the model to include the powertrain dynamics (a delay) and pitching dynamics |
