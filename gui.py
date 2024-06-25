@@ -9,7 +9,7 @@ class VisualizationData:
         self.ys = []
         self.xr=[]
         self.yr=[]
-        self.figure, self.ax = plt.subplots(figsize=(8,5))
+        self.figure, self.ax = plt.subplots(figsize=(9,4))
         self.line, = self.ax.plot(self.xs, self.ys)
         self.ax.set_xlabel(xlabel)
         self.ax.set_ylabel(ylabel)
@@ -25,10 +25,10 @@ class VisualizationData:
 
 
 def animate(instance):
-    xs = instance.xs[-5000:]  
-    ys = instance.ys[-5000:]
-    xr = instance.xr[-5000:]  
-    yr = instance.yr[-5000:]
+    xs = instance.xs[-30000:]  
+    ys = instance.ys[-30000:]
+    xr = instance.xr[-30000:]  
+    yr = instance.yr[-30000:]
 
     instance.line.set_xdata(xs)
     instance.line.set_ydata(ys)

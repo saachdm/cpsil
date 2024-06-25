@@ -13,32 +13,35 @@ i=0
 sim_time=0
 plt.ion()
 velocity_vis=gui.VisualizationData(plotref=True)
-# Fz_vis=gui.VisualizationData()
 
 ## Sim constants and initial value
-v0=1
+v0=4
 f0=0
-timestep=0.0005
-
+timestep=0.0005 #second
+sim_end_time=40 #second
+num_stepping=sim_end_time/timestep
 dyn_mod=dynamic_model.dynMod_simpletwowheelLong(v0,timestep)
 
+input_vref=ref.square(timestep,3).astype(float)
 
-while i<40000:
+while i<num_stepping:
     i+=1
     sim_time+=timestep
-    MESSAGE = struct.pack('<ff',float(dyn_mod.v),float(ref.square(timestep,3)[i]))  
+    if i<=len(input_vref):
+        input=input_vref[i]
+    else:
+        input=5
+    MESSAGE = struct.pack('<ff',float(dyn_mod.v),input)  
     sock.sendto(MESSAGE, (UDP_IP, UDP_PORT))
 
     data,server_address=sock.recvfrom(UDP_PORT)
     
-    unpacked_data=struct.unpack('<f',data)
-    dyn_mod.step(unpacked_data[0],0)
+    unpacked_data=struct.unpack('<ff',data)
+    dyn_mod.step(unpacked_data[0],unpacked_data[1])
+    velocity_vis.append_data(sim_time,dyn_mod.v,input)
 
-    velocity_vis.append_data(sim_time,dyn_mod.v,float(ref.square(timestep,3)[i]))
-
-    if i%10==0:
+    if i%100==0:
         gui.animate(instance=velocity_vis)
-    # time.sleep(0.0000001)
     
 plt.ioff()
 plt.show()

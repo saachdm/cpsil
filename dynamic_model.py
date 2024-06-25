@@ -100,16 +100,19 @@ class dynMod_simpletwowheelLong:
 
     def T_traction(self, u1): #Assuming only one wheel is propelled (rear)
         Tmax = 100  # Max propulsive torque
+        u1=min(u1,1) #Saturate U1 to be always below 1
         propulsive_U = max(0, u1)  # Saturate to enable coasting (T=0) when U input is <0
         return Tmax * propulsive_U
 
     def T_brake_front(self, u2):
-        Tbrakemax = 50  # Max braking torque
+        Tbrakemax = 75  # Max braking torque
+        u2=min(u2,1) #Saturate U2 to be always below 1
         braking_U = max(0, u2)  # Saturate to prevent "negative braking"
         return Tbrakemax * braking_U * self.brake_dist
 
     def T_brake_rear(self, u2):
-        Tbrakemax = 50  # Max braking torque
+        Tbrakemax = 75  # Max braking torque
+        u2=min(u2,1) #Saturate U2 to be always below 1
         braking_U = max(0, u2)  # Saturate to prevent "negative braking"
         return Tbrakemax * braking_U * (1 - self.brake_dist)
 
@@ -145,7 +148,7 @@ class dynMod_simpletwowheelLong:
         
         alpha_r = (traction - braking_front - Fx_r * self.r) / self.Ir
         alpha_f = (-braking_rear -Fx_f * self.r) / self.If
-        a = (Fx_r + Fx_f - F_aero - F_friction) / self.m
+        a = (Fx_r + Fx_f - F_aero - F_friction - braking_front*self.r - braking_rear*self.r) / self.m
         self.a = a
         
         return alpha_r, alpha_f, a
@@ -162,7 +165,6 @@ class dynMod_simpletwowheelLong:
             User input for braking control.
         """
         h = self.timestep
-
         # Initial state
         omega_r1, omega_f1, v1 = self.omega_r, self.omega_f, self.v
 

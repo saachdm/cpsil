@@ -1,7 +1,8 @@
 #ifndef HEADER
 #define HEADER
 typedef struct data_outgoing{
-    float force;
+    float prop_input;
+    float brake_input;
 } data_outgoing_type;
 
 typedef struct data_incoming{
