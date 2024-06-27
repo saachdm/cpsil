@@ -20,8 +20,11 @@ void speed_control(float vx, float vx_ref, float* prop_input, float* brake_input
 //Main control input "packer"
 data_outgoing_type main_controller(data_incoming_type outputs){
     data_outgoing_type inputs;
+
+    //Control modules
     speed_control(outputs.Vx,outputs.Vx_ref,&prop_input,&brake_input);
-    printf("Prop_input: %f \n",prop_input);
+
+    //Input packing
     inputs.prop_input=prop_input;
     inputs.brake_input=brake_input;
     return inputs;

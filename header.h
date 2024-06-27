@@ -10,4 +10,9 @@ typedef struct data_incoming{
     float Vx_ref;
 } data_incoming_type;
 
+// typedef struct data_incoming_mode{
+//     float yyyy;
+//     float zzzz;
+// } data_incoming_mode_type;
+
 #endif
