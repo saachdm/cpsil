@@ -29,6 +29,8 @@ I can try the "bare minimum" of the simulation system. The second architecture d
 demanding of them all :)
 
 Hopefully, this project can be finished by the end of summer 2024.
+### Usage
+Compile the udpserver.c and run main.py. I haven't done any "streamlining" on this part yet.
 
 ### Architecture #1
 The initial plan of the architecture is as follow:
