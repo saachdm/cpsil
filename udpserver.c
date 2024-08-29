@@ -32,6 +32,7 @@ int main() {
     }
     printf("Listening....\n \n");
 
+    // These two data types dictate what's being received and sent. Edit in header
     data_incoming_type data_incoming_struct;
     data_outgoing_type data_outgoing_struct;
 

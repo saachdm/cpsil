@@ -1,8 +1,12 @@
 #ifndef HEADER
 #define HEADER
+
+// "Outgoing" --> To python
+// "Incoming" --> From python
 typedef struct data_outgoing{
     float prop_input;
     float brake_input;
+    int gear_input;
 } data_outgoing_type;
 
 typedef struct data_incoming{

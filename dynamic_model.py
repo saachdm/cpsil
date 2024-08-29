@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 class dynMod_pointmass():
     """
     Simplest pointmass longitudinal model. Input to the system is assumed to be a multiplier of a torque constant.
@@ -196,7 +197,7 @@ class dynMod_simpletwowheelLong:
 
 class dynMod_simpletwowheelLong_wgear:
     """
-    Longitudinal simple two-wheel model with rear-wheel drive, brakes on both wheels, and gearbox.
+    Longitudinal simple two-wheel model with rear-wheel drive, brakes on both wheels, and gear.
 
     Attributes
     ----------
@@ -241,7 +242,7 @@ class dynMod_simpletwowheelLong_wgear:
         self.Lr = 1  # Distance from CG to rear axle (m)
         self.Lf = 1.2  # Distance from CG to front axle (m)
         self.Cx = 30000  # Longitudinal tire stiffness for both front and rear(N)
-        self.mu = 0.8  # Friction coefficient # TODO: Add capability to change this from main controller
+        self.mu = 0.8  # Friction coefficient
         self.timestep = timestep  # Time step (s)
         self.h = 0.6  # Height of CG (m)
         self.Ir = 0.3  # Rear wheel inertia (kg.m^2)
@@ -250,7 +251,8 @@ class dynMod_simpletwowheelLong_wgear:
         self.omega_f = self.v / self.r  # Initial front wheel angular velocity (rad/s)
         self.slip_r = self.slip(self.omega_r, self.v)  # Rear wheel slip ratio
         self.slip_f = self.slip(self.omega_f, self.v)  # Front wheel slip ratio
-        self.gear = 1  # Initial gear
+        self.diff_ratio=2.5
+        self.gear = 0  # Initial gear [0-->1st gear]
         self.eng_T = 0  # Engine torque
         self.eng_omega = 0
         self.driv_T = 0  # Driveline torque
@@ -261,8 +263,24 @@ class dynMod_simpletwowheelLong_wgear:
         self.Ffz = Ffz_init  # Front normal force
         self.brake_dist = 0.6  # Braking distribution ratio (front/rear)
         self.Tbrakemax = 75  # Max braking torque (per wheel)
-        self.T_eng_max=150 #Max engine-out torque
+        self.T_eng_max=200
+        self.fuel_consumption=0
+        self.distance_driven=0
+        self.isStall=False
 
+        T_col=pd.read_csv('T_CE_col_interp.csv',header=None)
+        w_row=pd.read_csv('w_CE_row_interp.csv',header=None)
+        self.V_el=pd.read_csv('V_CE_map_interp.csv',header=None)
+        self.T_col_arr=T_col.values.flatten()
+        self.w_row_arr=w_row.values.flatten()
+
+    
+    
+    def instantaneous_fuel_consumption(self,w_query,T_query):
+        T_index=np.argmin(np.abs(self.T_col_arr-T_query))
+        w_index=np.argmin(np.abs(self.w_row_arr-w_query))
+        fuel_cons=(self.V_el.iloc[w_index,T_index])*self.timestep #in kg/s to kg/timestep
+        return fuel_cons
 
     def slip(self, w, v):
         v_tang = w * self.r
@@ -273,10 +291,17 @@ class dynMod_simpletwowheelLong_wgear:
     def gearbox(self, u1):
         u1 = min(u1, 1)  # Saturate U1 to be always below 1
         self.eng_T = u1 * self.T_eng_max  # Input U1 now is engine torque output
-        gear_ratios = [3, 2.5, 1.6, 1, 0.8]  # Out/in torque
-        self.driv_T = self.eng_T * gear_ratios[self.gear - 1]  # Gear 1 --> Array pos 0
+        gear_ratios = np.array([3, 2.5, 1.6, 1, 0.8])*self.diff_ratio  # Out/in torque
+        self.driv_T = self.eng_T * gear_ratios[self.gear]  # Gear 1 --> Array pos 0
         self.driv_omega = self.omega_r  # Omega driveline = omega rear wheel
-        self.eng_omega = self.driv_omega * gear_ratios[self.gear - 1]  # unused for now (27-06-2024)
+        self.eng_omega = self.driv_omega * gear_ratios[self.gear]  # unused for now (27-06-2024)
+        
+    def change_gear(self,type):
+        #Called by the manual change gear button
+        if type==1 and self.dyn_mod.gear<4:
+            self.dyn_mod.gear+=1
+        elif type==2 and self.dyn_mod.gear>0:
+            self.dyn_mod.gear-=1
 
     def T_traction(self, u1):  # Assuming only one wheel is propelled (rear)
         self.gearbox(u1)
@@ -300,7 +325,7 @@ class dynMod_simpletwowheelLong_wgear:
         return min(Fx, Fz * self.mu)
 
     def Fz(self):
-        # Calculate normal forces, considering the incline. ref: Vehdyn compendium Chalmers
+        # Calculate normal forces, considering the incline
         g = 9.81  # Gravity (m/s^2)
         Ffz = self.m * (g * (self.Lr*np.cos(self.incline)+self.h*np.sin(self.incline)) / (self.Lr + self.Lf) - self.a * (self.h / (self.Lf + self.Lr)))- self.F_aero(self.v) * self.h / (self.Lf + self.Lr)
         Frz = self.m * (g * (self.Lf*np.cos(self.incline)-self.h*np.sin(self.incline)) / (self.Lr + self.Lf) + self.a * (self.h / (self.Lf + self.Lr)))+ self.F_aero(self.v) * self.h / (self.Lf + self.Lr)
@@ -330,17 +355,33 @@ class dynMod_simpletwowheelLong_wgear:
         self.a = a
         
         return alpha_r, alpha_f, a
+    
+    def rev_limiter(self):
+        ## Idling
+        if self.eng_omega<52.36:
+            self.isStall=True
+        elif self.eng_omega>840:
+            self.isStall=True
+        else:
+            self.isStall=False
 
-    def step(self, u1, u2):
+        self.eng_omega=max(self.eng_omega,52.36)
+
+        return None
+
+    def step(self, u1, u2,u3):
         """
         Update the model state for one time step using RK4 integration.
         
         Parameters
         ----------
         u1 : float
-            User input for traction control.
+            Forward traction control input.
         u2 : float
-            User input for braking control.
+            Brake control input.
+        u3 : integer
+            Gear
+            
         """
         h = self.timestep
         # Initial state
@@ -370,3 +411,7 @@ class dynMod_simpletwowheelLong_wgear:
         self.v += (h / 6) * (k1_v + 2 * k2_v + 2 * k3_v + k4_v)
         self.slip_r = self.slip(self.omega_r, self.v)
         self.slip_f = self.slip(self.omega_f, self.v)
+        self.fuel_consumption+=self.instantaneous_fuel_consumption(self.eng_omega,self.eng_T)/0.725 #kg/timestep to L/timestep
+        self.distance_driven+=self.v*self.timestep #meter
+        self.rev_limiter()
+        self.gear=u3
