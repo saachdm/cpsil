@@ -11,26 +11,9 @@ The dynamics are governed by a separate Python-based script (well because I am m
 Then a simulation controller with Python will handle the "tick-tock" of the simulation time and the UDP communication between the dynamics and the controller. A separate Python-based script will
 serve as the user interface that receives real-time input from the user.
 
-General plan:
 
-| Stage | Title | Desc |
-|----------|----------|----------|
-| 1 | Basics of C   | Learn the basics of C |
-| 2 | Environment Setup and testing #1 | Developing the architecture of the entire simulation process for 1-DOF simulation|
-| 3 | Longitudinal dynamics (Adaptive Cruise Control and ABS) | 1-DOF simulation with simple point-mass dynamics. The vehicle is commanded to follow an agent in front. The input to the simulation is the speed of the agent. ABS is included |
-| 4 | Environment setup and testing #2 | Extending the architecture to accommodate 3-DOF simulation (longitudinal, lateral, and pitching motion) |
-| 5 | Lateral dynamics (Lane-keeping assist) | 2-DOF simulation with a simple bicycle model. The vehicle is commanded to change lanes |
-| 6 | Powertrain dynamics and Pitching dynamics | Extending the model to include the powertrain dynamics (a delay) and pitching dynamics |
-| 7 | Long+Lat dynamics (ACC+lane keeping assist) | Extending the model to be able to perform ACC and maintain the same lane as the agent |
-| 8 | Parameter estimation (RLS) | Implementing Kalman Filter-based Recursive Least Squares (RLS) to estimate center of gravity |
-
-Each stage (2nd stage onwards) will be tested and documented through my blog (https://schmunt.wordpress.com). The initial architecture development (2nd stage) focus on the practicality so that
-I can try the "bare minimum" of the simulation system. The second architecture development (4th stage) will focus on the scalability and the extendability of the system. I am sure that the second stage will be the most
-demanding of them all :)
-
-Hopefully, this project can be finished by the end of summer 2024.
 ### Usage
-Compile the udpserver.c and run main.py. I haven't done any "streamlining" on this part yet.
+Compile the udpserver.c and run main.py. I haven't done any "streamlining" on this part yet and only tested on Linux.
 
 ### Architecture #1
 The initial plan of the architecture is as follow:
@@ -38,5 +21,8 @@ The initial plan of the architecture is as follow:
 
 On the C-side, sensor readings and input to the dynamic system will use a "publisher-subscriber" method towards the C server. The user in the C-side then can focus on processing the "subscribed" values and "publishing" the processed values without worrying about the "backend" side of the C. The entire C loop will run everytime the C server receives a message from the Python server.
 
-### Current update 25-06-2024
+### Update 25-06-2024
 The minimum viable product is ready and it should be able to "capture" the important features. The plotter is still a simple matplotlib update mechanism, models are still limited to longitudinal, and lots of things to explore on the C side. Next development will focus on a more robust and modular model, adding driveline model, as well as implementing a rudimentary "bicycle" model for lateral motion.
+
+### Update 29-08-2024
+It's been a while. The dynamic model now include front-rear wheel model for load transfer consideration, gearbox, road inclination, rev limit, and fuel consumption estimate based on a rudimentary engine map from a coursework I did. A very simple speed-based automatic gear control is also implemented on the C-side. The lateral model is still on hold because I am still having "fun" with the longitudinal model :). The GUI is now nicer with dearpygui. However, there is a massive performance issue and this will be my main objective now. Lateral model will be published along with a live "2D" map GUI and support for live user input. The dynamic model is still very-very "simple" and not deep/detailed enough. The resources needed to improve the model is quite big while the gain is not that much for this purpose. That's the reason why the model development seemed to expand "laterally".
